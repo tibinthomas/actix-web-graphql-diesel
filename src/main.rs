@@ -1,3 +1,4 @@
+mod config;
 mod models;
 use crate::models::Status;
 
@@ -11,10 +12,17 @@ async fn status() -> impl Responder {
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-    println!("Start http server");
+    dotenv::dotenv().ok();
+
+    let config = crate::config::Config::from_env().unwrap();
+
+    println!(
+        "Starting http server at {}:{}",
+        config.server.host, config.server.port
+    );
 
     HttpServer::new(|| App::new().route("/", web::get().to(status)))
-        .bind("127.0.0.1:8080")?
+        .bind(format!("{}:{}", config.server.host, config.server.port))?
         .run()
         .await
 }
